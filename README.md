@@ -1,4 +1,4 @@
-# NVML Bindings for Go  [![MIT License][license-svg]][license-url]
+# NVML Bindings for Go [![API Documentation][godoc-svg]][godoc-url] [![MIT License][license-svg]][license-url]
 
 
 This package provides bindings to Nvidia's NVML library.
@@ -26,5 +26,7 @@ import github.com/davidr/go-nvml
 All code in this repository is covered by the terms of the MIT License, the full
 text of which can be found in the LICENSE file.
 
+[godoc-url]: https://godoc.org/github.com/davidr/go-nvml
+[godoc-svg]: https://godoc.org/github.com/davidr/go-nvml?status.svg
 [license-url]: https://github.com/davidr/go-nvml/blob/master/LICENSE
 [license-svg]: https://img.shields.io/badge/license-MIT-blue.svg
