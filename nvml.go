@@ -348,6 +348,8 @@ func nvmlDeviceGetCount() (int, error) {
 	return int(count), nil
 }
 
+// GetAllGPUs will return a slice of type Device for all NVML devices present on
+// the host system
 func GetAllGPUs() ([]Device, error) {
 	var devices []Device
 	cdevices, err := getAllDevices()
