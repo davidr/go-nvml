@@ -16,7 +16,7 @@ anything for a while.
 ```go
 package main
 
-import github.com/davidr/go-nvml
+import nvml "github.com/davidr/go-nvml"
 
 // To be completed later
 ```
