@@ -283,9 +283,9 @@ func (gpu *Device) Serial() (string, error) {
 
 // Go correspondent of the C.nvmlMemory_t struct. Memory in bytes
 type NvmlMemory struct {
-	free  uint64
-	total uint64
-	used  uint64
+	Free  uint64
+	Total uint64
+	Used  uint64
 }
 
 // MemoryInfo returns a NvmlMemory struct populated with the amount of memory used,
@@ -300,9 +300,9 @@ func (gpu *Device) MemoryInfo() (NvmlMemory, error) {
 		return meminfo, errors.New("GetPowerState returned error")
 	}
 
-	meminfo.free = uint64(cmeminfo.free)
-	meminfo.total = uint64(cmeminfo.total)
-	meminfo.used = uint64(cmeminfo.used)
+	meminfo.Free = uint64(cmeminfo.free)
+	meminfo.Total = uint64(cmeminfo.total)
+	meminfo.Used = uint64(cmeminfo.used)
 
 	return meminfo, nil
 }
