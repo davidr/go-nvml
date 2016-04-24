@@ -9,7 +9,6 @@ package nvml
 #include <stddef.h>
 #include <string.h>
 
-
 // Not every function can be genericized in this way because of all the custom structs,
 // but there are several nvmlGet functions we want that take a nvmlDevice_t, *char, and
 // a length as arguments. These are trivial to pass as function pointers along with their,
@@ -24,6 +23,23 @@ int bridge_get_text_property(gettextProperty f,
     nvmlReturn_t ret;
 
     ret = f(device, buf, length);
+
+    if (ret == NVML_SUCCESS) {
+        return(EXIT_SUCCESS);
+    } else {
+        return(EXIT_FAILURE);
+    }
+}
+
+// Same as above, but for integer properties
+typedef int (*getintProperty) (nvmlDevice_t device , uint *property);
+int bridge_get_int_property(getintProperty f,
+                             nvmlDevice_t device,
+                             uint *property)
+{
+    nvmlReturn_t ret;
+
+    ret = f(device, property);
 
     if (ret == NVML_SUCCESS) {
         return(EXIT_SUCCESS);
@@ -48,22 +64,22 @@ type Device struct {
 	uuid       string
 }
 
+// NewDevice is a contstructor function for Device structs. Given an nvmlDevice_t
+// object as input, it populates some static property fields and returns a Device
 func NewDevice(cdevice C.nvmlDevice_t) (*Device, error) {
-
 	device := Device{
 		nvmldevice: cdevice,
 	}
 
-	// Populate the device with some basic properties
 	uuid, err := device.UUID()
 	if err != nil {
-		return nil, errors.New("Cannot retrieve property")
+		return nil, errors.New("Cannot retrieve UUID property")
 	}
 	device.uuid = uuid
 
 	name, err := device.Name()
 	if err != nil {
-		return nil, errors.New("Cannot retrieve property")
+		return nil, errors.New("Cannot retrieve Name property")
 	}
 	device.name = name
 
@@ -82,18 +98,7 @@ func (gpu *Device) PowerState() (int, error) {
 	return int(pstate), nil
 }
 
-func (gpu *Device) PowerUsage() (uint, error) {
-	var result C.nvmlReturn_t
-	var cusage C.uint
-
-	result = C.nvmlDeviceGetPowerUsage(gpu.nvmldevice, &cusage)
-	if result != C.NVML_SUCCESS {
-		return 0, errors.New("GetPowerState returned error")
-	}
-
-	return uint(cusage), nil
-}
-
+// Temp returns the current temperature of the card in degrees Celsius
 func (gpu *Device) Temp() (uint, error) {
 	var result C.nvmlReturn_t
 	var ctemp C.uint
@@ -104,6 +109,109 @@ func (gpu *Device) Temp() (uint, error) {
 	}
 
 	return uint(ctemp), nil
+}
+
+type CIntPropFunc struct {
+	f C.getintProperty
+}
+
+var intpropfunctions = map[string]*CIntPropFunc{
+	"Index":                        {C.getintProperty(C.nvmlDeviceGetIndex)},
+	"MinorNumber":                  {C.getintProperty(C.nvmlDeviceGetMinorNumber)},
+	"InforomConfigurationChecksum": {C.getintProperty(C.nvmlDeviceGetInforomConfigurationChecksum)},
+	"MaxPcieLinkGeneration":        {C.getintProperty(C.nvmlDeviceGetMaxPcieLinkGeneration)},
+	"MaxPcieLinkWidth":             {C.getintProperty(C.nvmlDeviceGetMaxPcieLinkWidth)},
+	"CurrPcieLinkGeneration":       {C.getintProperty(C.nvmlDeviceGetCurrPcieLinkGeneration)},
+	"CurrPcieLinkWidth":            {C.getintProperty(C.nvmlDeviceGetCurrPcieLinkWidth)},
+	"PcieReplayCounter":            {C.getintProperty(C.nvmlDeviceGetPcieReplayCounter)},
+	"FanSpeed":                     {C.getintProperty(C.nvmlDeviceGetFanSpeed)},
+	"PowerManagementLimit":         {C.getintProperty(C.nvmlDeviceGetPowerManagementLimit)},
+	"PowerManagementDefaultLimit":  {C.getintProperty(C.nvmlDeviceGetPowerManagementDefaultLimit)},
+	"PowerUsage":                   {C.getintProperty(C.nvmlDeviceGetPowerUsage)},
+	"EnforcedPowerLimit":           {C.getintProperty(C.nvmlDeviceGetEnforcedPowerLimit)},
+	"BoardId":                      {C.getintProperty(C.nvmlDeviceGetBoardId)},
+	"MultiGpuBoard":                {C.getintProperty(C.nvmlDeviceGetMultiGpuBoard)},
+	"AccountingBufferSize":         {C.getintProperty(C.nvmlDeviceGetAccountingBufferSize)},
+}
+
+func (gpu *Device) intProperty(property string) (uint, error) {
+	var cuintproperty C.uint
+
+	ipf, ok := intpropfunctions[property]
+	if ok == false {
+		return 0, errors.New("property not found")
+	}
+
+	result := C.bridge_get_int_property(ipf.f, gpu.nvmldevice, &cuintproperty)
+	if result != C.EXIT_SUCCESS {
+		return 0, errors.New("getintProperty bridge returned error")
+	}
+
+	return uint(cuintproperty), nil
+}
+
+func (gpu *Device) Index() (uint, error) {
+	return gpu.intProperty("Index")
+}
+
+func (gpu *Device) MinorNumber() (uint, error) {
+	return gpu.intProperty("MinorNumber")
+}
+
+func (gpu *Device) InforomConfigurationChecksum() (uint, error) {
+	return gpu.intProperty("InforomConfigurationChecksum")
+}
+
+func (gpu *Device) MaxPcieLinkGeneration() (uint, error) {
+	return gpu.intProperty("MaxPcieLinkGeneration")
+}
+
+func (gpu *Device) MaxPcieLinkWidth() (uint, error) {
+	return gpu.intProperty("MaxPcieLinkWidth")
+}
+
+func (gpu *Device) CurrPcieLinkGeneration() (uint, error) {
+	return gpu.intProperty("CurrPcieLinkGeneration")
+}
+
+func (gpu *Device) CurrPcieLinkWidth() (uint, error) {
+	return gpu.intProperty("CurrPcieLinkWidth")
+}
+
+func (gpu *Device) PcieReplayCounter() (uint, error) {
+	return gpu.intProperty("PcieReplayCounter")
+}
+
+func (gpu *Device) FanSpeed() (uint, error) {
+	return gpu.intProperty("FanSpeed")
+}
+
+func (gpu *Device) PowerManagementLimit() (uint, error) {
+	return gpu.intProperty("PowerManagementLimit")
+}
+
+func (gpu *Device) PowerManagementDefaultLimit() (uint, error) {
+	return gpu.intProperty("PowerManagementDefaultLimit")
+}
+
+func (gpu *Device) PowerUsage() (uint, error) {
+	return gpu.intProperty("PowerUsage")
+}
+
+func (gpu *Device) EnforcedPowerLimit() (uint, error) {
+	return gpu.intProperty("EnforcedPowerLimit")
+}
+
+func (gpu *Device) BoardId() (uint, error) {
+	return gpu.intProperty("BoardId")
+}
+
+func (gpu *Device) MultiGpuBoard() (uint, error) {
+	return gpu.intProperty("MultiGpuBoard")
+}
+
+func (gpu *Device) AccountingBufferSize() (uint, error) {
+	return gpu.intProperty("AccountingBufferSize")
 }
 
 type CTextPropFunc struct {
@@ -117,6 +225,37 @@ var textpropfunctions = map[string]*CTextPropFunc{
 	"UUID":                {C.gettextProperty(C.nvmlDeviceGetUUID), C.NVML_DEVICE_UUID_BUFFER_SIZE},
 	"InforomImageVersion": {C.gettextProperty(C.nvmlDeviceGetInforomImageVersion), C.NVML_DEVICE_INFOROM_VERSION_BUFFER_SIZE},
 	"VbiosVersion":        {C.gettextProperty(C.nvmlDeviceGetVbiosVersion), C.NVML_DEVICE_VBIOS_VERSION_BUFFER_SIZE},
+}
+
+// textProperty takes a propertyname as input and then runs the corresponding
+// function in the textpropfunctions map, returning the result as a Go string.
+//
+// textProperty takes care of allocating (and freeing) the text buffers of
+// proper size.
+func (gpu *Device) textProperty(property string) (string, error) {
+	var propvalue string
+
+	// If there isn't a valid entry for this property in the map, there's no reason
+	// to process any further
+	tpf, ok := textpropfunctions[property]
+	if ok == false {
+		return "", errors.New("property not found")
+	}
+
+	var buf *C.char = genCStringBuffer(uint(tpf.length))
+	defer C.free(unsafe.Pointer(buf))
+
+	result := C.bridge_get_text_property(tpf.f, gpu.nvmldevice, buf, tpf.length)
+	if result != C.EXIT_SUCCESS {
+		return propvalue, errors.New("gettextProperty bridge returned error")
+	}
+
+	propvalue = strndup(buf, int(tpf.length))
+	if len(propvalue) > 0 {
+		return propvalue, nil
+	} else {
+		return "", errors.New("textProperty returned empty string")
+	}
 }
 
 func (gpu *Device) InforomImageVersion() (string, error) {
@@ -140,37 +279,6 @@ func (gpu *Device) UUID() (string, error) {
 // Return the serial number of the device
 func (gpu *Device) Serial() (string, error) {
 	return gpu.textProperty("Serial")
-}
-
-// textProperty takes a propertyname as input and then runs the corresponding
-// function in the textpropfunctions map, returning the result as a Go string.
-//
-// textProperty takes care of allocating (and freeing) the text buffers of
-// proper size.
-func (gpu *Device) textProperty(property string) (string, error) {
-	var result C.int
-	var propvalue string
-
-	tpf, ok := textpropfunctions[property]
-	if ok == false {
-		return "", errors.New("property not found")
-	}
-
-	var buf *C.char = genCStringBuffer(uint(tpf.length))
-	defer C.free(unsafe.Pointer(buf))
-
-	result = C.bridge_get_text_property(tpf.f, gpu.nvmldevice, buf, tpf.length)
-
-	if result != C.EXIT_SUCCESS {
-		return propvalue, errors.New("gettextProperty bridge returned error")
-	}
-
-	propvalue = strndup(buf, int(tpf.length))
-	if len(propvalue) > 0 {
-		return propvalue, nil
-	} else {
-		return "", errors.New("textProperty returned empty string")
-	}
 }
 
 // Go correspondent of the C.nvmlMemory_t struct. Memory in bytes
@@ -199,7 +307,7 @@ func (gpu *Device) MemoryInfo() (NvmlMemory, error) {
 	return meminfo, nil
 }
 
-// Return a string representation of the nvml
+// Return a proper golang error of representation of the nvmlReturn_t error
 func (gpu *Device) Error(cerror C.nvmlReturn_t) error {
 	var cerrorstring *C.char
 
@@ -217,6 +325,7 @@ func (gpu *Device) Error(cerror C.nvmlReturn_t) error {
 	return errors.New(C.GoString(cerrorstring))
 }
 
+// Initialize the NVML session
 func nvmlInit() error {
 	var result C.nvmlReturn_t
 
@@ -278,7 +387,7 @@ func getAllDevices() ([]C.nvmlDevice_t, error) {
 		devices = append(devices, device)
 	}
 
-	if len(devices) > 0 {
+	if len(devices) == 0 {
 		return devices, errors.New("No devices found")
 	}
 
