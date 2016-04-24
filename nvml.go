@@ -111,11 +111,11 @@ func (gpu *Device) Temp() (uint, error) {
 	return uint(ctemp), nil
 }
 
-type CIntPropFunc struct {
+type cIntPropFunc struct {
 	f C.getintProperty
 }
 
-var intpropfunctions = map[string]*CIntPropFunc{
+var intpropfunctions = map[string]*cIntPropFunc{
 	"Index":                        {C.getintProperty(C.nvmlDeviceGetIndex)},
 	"MinorNumber":                  {C.getintProperty(C.nvmlDeviceGetMinorNumber)},
 	"InforomConfigurationChecksum": {C.getintProperty(C.nvmlDeviceGetInforomConfigurationChecksum)},
@@ -214,12 +214,12 @@ func (gpu *Device) AccountingBufferSize() (uint, error) {
 	return gpu.intProperty("AccountingBufferSize")
 }
 
-type CTextPropFunc struct {
+type cTextPropFunc struct {
 	f      C.gettextProperty
 	length C.uint
 }
 
-var textpropfunctions = map[string]*CTextPropFunc{
+var textpropfunctions = map[string]*cTextPropFunc{
 	"Name":                {C.gettextProperty(C.nvmlDeviceGetName), C.NVML_DEVICE_NAME_BUFFER_SIZE},
 	"Serial":              {C.gettextProperty(C.nvmlDeviceGetSerial), C.NVML_DEVICE_SERIAL_BUFFER_SIZE},
 	"UUID":                {C.gettextProperty(C.nvmlDeviceGetUUID), C.NVML_DEVICE_UUID_BUFFER_SIZE},
