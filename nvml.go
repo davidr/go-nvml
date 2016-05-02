@@ -2,9 +2,9 @@ package nvml
 
 /*
 // #cgo CPPFLAGS: -I/path/to/install
-// #cgo LDFLAGS: -L/path/to/install -l nvidia-ml
+#cgo LDFLAGS: -L/usr/src/gdk/nvml/lib/ -l nvidia-ml
 
-#include <nvml.h>
+#include <nvidia/gdk/nvml.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
