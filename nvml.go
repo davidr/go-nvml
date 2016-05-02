@@ -242,18 +242,18 @@ func (gpu *Device) Serial() (string, error) {
 }
 
 // Go correspondent of the C.nvmlMemory_t struct. Memory in bytes
-type NvmlMemory struct {
+type NVMLMemory struct {
 	Free  uint64
 	Total uint64
 	Used  uint64
 }
 
-// MemoryInfo returns a NvmlMemory struct populated with the amount of memory used,
+// MemoryInfo returns a NVMLMemory struct populated with the amount of memory used,
 // free, and in total on the device, in bytes.
-func (gpu *Device) MemoryInfo() (NvmlMemory, error) {
+func (gpu *Device) MemoryInfo() (NVMLMemory, error) {
 	var result C.nvmlReturn_t
 	var cmeminfo C.nvmlMemory_t
-	var meminfo NvmlMemory
+	var meminfo NVMLMemory
 
 	result = C.nvmlDeviceGetMemoryInfo(gpu.nvmldevice, &cmeminfo)
 	if result != C.NVML_SUCCESS {
