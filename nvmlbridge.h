@@ -1,4 +1,7 @@
 #include <nvidia/gdk/nvml.h>
+#include <stdlib.h>
+#include <stddef.h>
+#include <string.h>
 
 // Not every function can be genericized in this way because of all the custom structs,
 // but there are several nvmlGet functions we want that take a nvmlDevice_t, *char, and
