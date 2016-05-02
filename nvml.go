@@ -4,50 +4,10 @@ package nvml
 // #cgo CPPFLAGS: -I/path/to/install
 #cgo LDFLAGS: -L/usr/src/gdk/nvml/lib/ -l nvidia-ml
 
-#include <nvidia/gdk/nvml.h>
+#include "nvmlbridge.h"
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
-
-// Not every function can be genericized in this way because of all the custom structs,
-// but there are several nvmlGet functions we want that take a nvmlDevice_t, *char, and
-// a length as arguments. These are trivial to pass as function pointers along with their,
-// arguments, so we might as well save some effort.
-//
-typedef int (*gettextProperty) (nvmlDevice_t device , char *buf, uint length);
-int bridge_get_text_property(gettextProperty f,
-                             nvmlDevice_t device,
-                             char *buf,
-                             uint length)
-{
-    nvmlReturn_t ret;
-
-    ret = f(device, buf, length);
-
-    if (ret == NVML_SUCCESS) {
-        return(EXIT_SUCCESS);
-    } else {
-        return(EXIT_FAILURE);
-    }
-}
-
-// Same as above, but for integer properties
-typedef int (*getintProperty) (nvmlDevice_t device , uint *property);
-int bridge_get_int_property(getintProperty f,
-                             nvmlDevice_t device,
-                             uint *property)
-{
-    nvmlReturn_t ret;
-
-    ret = f(device, property);
-
-    if (ret == NVML_SUCCESS) {
-        return(EXIT_SUCCESS);
-    } else {
-        return(EXIT_FAILURE);
-    }
-}
-
 */
 import "C"
 
