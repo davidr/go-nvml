@@ -207,7 +207,7 @@ func (gpu *Device) textProperty(property string) (string, error) {
 		return propvalue, errors.New("gettextProperty bridge returned error")
 	}
 
-	propvalue = strndup(buf, int(tpf.length))
+	propvalue = strndup(buf, uint(tpf.length))
 	if len(propvalue) > 0 {
 		return propvalue, nil
 	} else {

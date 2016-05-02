@@ -41,6 +41,6 @@ func genCStringBuffer(size uint) *C.char {
 //
 // h/t: https://utcc.utoronto.ca/~cks/space/blog/programming/GoCGoStringFunctions
 //
-func strndup(cs *C.char, len int) string {
+func strndup(cs *C.char, len uint) string {
 	return C.GoStringN(cs, C.int(C.strnlen(cs, C.size_t(len))))
 }
