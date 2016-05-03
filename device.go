@@ -16,6 +16,7 @@ import (
 
 type Device struct {
 	nvmldevice C.nvmlDevice_t
+	index      uint
 	pcibus     string
 	name       string
 	uuid       string
@@ -39,6 +40,12 @@ func NewDevice(cdevice C.nvmlDevice_t) (*Device, error) {
 		return nil, errors.New("Cannot retrieve Name property")
 	}
 	device.name = name
+
+	index, err := device.Index()
+	if err != nil {
+		return nil, errors.New("Cannot retrieve Index property")
+	}
+	device.index = index
 
 	return &device, nil
 }
