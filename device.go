@@ -83,11 +83,11 @@ var intpropfunctions = map[string]*cIntPropFunc{
 	"Index":                        {C.getintProperty(C.nvmlDeviceGetIndex)},
 	"MinorNumber":                  {C.getintProperty(C.nvmlDeviceGetMinorNumber)},
 	"InforomConfigurationChecksum": {C.getintProperty(C.nvmlDeviceGetInforomConfigurationChecksum)},
-	"MaxPcieLinkGeneration":        {C.getintProperty(C.nvmlDeviceGetMaxPcieLinkGeneration)},
-	"MaxPcieLinkWidth":             {C.getintProperty(C.nvmlDeviceGetMaxPcieLinkWidth)},
-	"CurrPcieLinkGeneration":       {C.getintProperty(C.nvmlDeviceGetCurrPcieLinkGeneration)},
-	"CurrPcieLinkWidth":            {C.getintProperty(C.nvmlDeviceGetCurrPcieLinkWidth)},
-	"PcieReplayCounter":            {C.getintProperty(C.nvmlDeviceGetPcieReplayCounter)},
+	"MaxPCIeLinkGeneration":        {C.getintProperty(C.nvmlDeviceGetMaxPCIeLinkGeneration)},
+	"MaxPCIeLinkWidth":             {C.getintProperty(C.nvmlDeviceGetMaxPCIeLinkWidth)},
+	"CurrPCIeLinkGeneration":       {C.getintProperty(C.nvmlDeviceGetCurrPCIeLinkGeneration)},
+	"CurrPCIeLinkWidth":            {C.getintProperty(C.nvmlDeviceGetCurrPCIeLinkWidth)},
+	"PCIeReplayCounter":            {C.getintProperty(C.nvmlDeviceGetPCIeReplayCounter)},
 	"FanSpeed":                     {C.getintProperty(C.nvmlDeviceGetFanSpeed)},
 	"PowerManagementLimit":         {C.getintProperty(C.nvmlDeviceGetPowerManagementLimit)},
 	"PowerManagementDefaultLimit":  {C.getintProperty(C.nvmlDeviceGetPowerManagementDefaultLimit)},
@@ -95,7 +95,6 @@ var intpropfunctions = map[string]*cIntPropFunc{
 	"EnforcedPowerLimit":           {C.getintProperty(C.nvmlDeviceGetEnforcedPowerLimit)},
 	"BoardId":                      {C.getintProperty(C.nvmlDeviceGetBoardId)},
 	"MultiGpuBoard":                {C.getintProperty(C.nvmlDeviceGetMultiGpuBoard)},
-	"AccountingBufferSize":         {C.getintProperty(C.nvmlDeviceGetAccountingBufferSize)},
 }
 
 func (gpu *Device) intProperty(property string) (uint, error) {
@@ -114,68 +113,94 @@ func (gpu *Device) intProperty(property string) (uint, error) {
 	return uint(cuintproperty), nil
 }
 
+// Index returns the NVML index of the device.
 func (gpu *Device) Index() (uint, error) {
 	return gpu.intProperty("Index")
 }
 
+// MinorNumber returns the minor number of the device. The minor number
+// is the integer such that the device node file for the GPU will be
+// /dev/nvidia[Device.MinorNumber]
 func (gpu *Device) MinorNumber() (uint, error) {
 	return gpu.intProperty("MinorNumber")
 }
 
+// InforomConfigurationChecksum returns the checksum of the configuration
+// stored in the device's inforom. (Can be used to verify identical configuration
+// between devices.)
 func (gpu *Device) InforomConfigurationChecksum() (uint, error) {
 	return gpu.intProperty("InforomConfigurationChecksum")
 }
 
-func (gpu *Device) MaxPcieLinkGeneration() (uint, error) {
-	return gpu.intProperty("MaxPcieLinkGeneration")
+// MaxPCIeLinkGeneration returns the maximum PCIe link generation possible with this
+// device and system.
+func (gpu *Device) MaxPCIeLinkGeneration() (uint, error) {
+	return gpu.intProperty("MaxPCIeLinkGeneration")
 }
 
-func (gpu *Device) MaxPcieLinkWidth() (uint, error) {
-	return gpu.intProperty("MaxPcieLinkWidth")
+// MaxPCIeLinkWidth returns the maximum PCIe link width possible with this device
+// and system
+func (gpu *Device) MaxPCIeLinkWidth() (uint, error) {
+	return gpu.intProperty("MaxPCIeLinkWidth")
 }
 
-func (gpu *Device) CurrPcieLinkGeneration() (uint, error) {
-	return gpu.intProperty("CurrPcieLinkGeneration")
+// CurrPCIeLinkGeneration returns the current PCIe link generation number
+func (gpu *Device) CurrPCIeLinkGeneration() (uint, error) {
+	return gpu.intProperty("CurrPCIeLinkGeneration")
 }
 
-func (gpu *Device) CurrPcieLinkWidth() (uint, error) {
-	return gpu.intProperty("CurrPcieLinkWidth")
+// CurrPCIeLinkWidth returns the current PCIe link width
+func (gpu *Device) CurrPCIeLinkWidth() (uint, error) {
+	return gpu.intProperty("CurrPCIeLinkWidth")
 }
 
-func (gpu *Device) PcieReplayCounter() (uint, error) {
-	return gpu.intProperty("PcieReplayCounter")
+// PCIeReplayCounter returns the replay counter and rollover info.
+func (gpu *Device) PCIeReplayCounter() (uint, error) {
+	return gpu.intProperty("PCIeReplayCounter")
 }
 
+// FanSpeed returns the current fan speed of the device, on devices that
+// have fans.
 func (gpu *Device) FanSpeed() (uint, error) {
 	return gpu.intProperty("FanSpeed")
 }
 
+// PowerManagementLimit returns the power management limit for the device, in mW
 func (gpu *Device) PowerManagementLimit() (uint, error) {
 	return gpu.intProperty("PowerManagementLimit")
 }
 
+// PowerManagementDefaultLimit returns the upper limit for the amount of power
+// the card is allowed to draw, in mW.
 func (gpu *Device) PowerManagementDefaultLimit() (uint, error) {
 	return gpu.intProperty("PowerManagementDefaultLimit")
 }
 
+// PowerUsage returns the current power usage of the device, in mW.
 func (gpu *Device) PowerUsage() (uint, error) {
 	return gpu.intProperty("PowerUsage")
 }
 
+// EnforcedPowerLimit returns the effective power limit that the driver enforces after
+// taking into account all limiters.
 func (gpu *Device) EnforcedPowerLimit() (uint, error) {
 	return gpu.intProperty("EnforcedPowerLimit")
 }
 
+// BoardID returns the device boardId, which will be identical for GPUs connected to
+// the same PLX
 func (gpu *Device) BoardId() (uint, error) {
 	return gpu.intProperty("BoardId")
 }
 
-func (gpu *Device) MultiGpuBoard() (uint, error) {
-	return gpu.intProperty("MultiGpuBoard")
-}
-
-func (gpu *Device) AccountingBufferSize() (uint, error) {
-	return gpu.intProperty("AccountingBufferSize")
+// MultiGpuBoard
+func (gpu *Device) MultiGpuBoard() (bool, error) {
+	p, err := gpu.intProperty("MultiGpuBoard")
+	if int(p) == 0 {
+		return true, err
+	} else {
+		return false, err
+	}
 }
 
 type cTextPropFunc struct {
@@ -222,10 +247,12 @@ func (gpu *Device) textProperty(property string) (string, error) {
 	}
 }
 
+// InforomImageVersion returns the global inforom image version
 func (gpu *Device) InforomImageVersion() (string, error) {
 	return gpu.textProperty("InforomImageVersion")
 }
 
+// VbiosVersion returns the VBIOS version of the device
 func (gpu *Device) VbiosVersion() (string, error) {
 	return gpu.textProperty("VbiosVersion")
 }
