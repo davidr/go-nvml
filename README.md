@@ -1,7 +1,6 @@
 # NVML Bindings for Go [![API Documentation][godoc-svg]][godoc-url] [![MIT License][license-svg]][license-url]
 
-NOTE: This project has been abandoned. It's no longer needed at my job, so I won't be maintaining
-it.
+## NOTE: This project has been abandoned. It's no longer needed at my job, so I won't be maintaining it.
 
 This package provides bindings to Nvidia's NVML library.
 
