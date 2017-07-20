@@ -1,4 +1,4 @@
-#include <nvidia/gdk/nvml.h>
+#include <nvml.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
