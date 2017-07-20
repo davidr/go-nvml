@@ -1,8 +1,8 @@
 package nvml
 
 /*
-// #cgo CPPFLAGS: -I/path/to/install
-#cgo LDFLAGS: -L/usr/src/gdk/nvml/lib/ -l nvidia-ml
+#cgo CPPFLAGS: -I/usr/local/cuda/include
+#cgo LDFLAGS: -L/usr/lib/nvidia-375 -l nvidia-ml
 
 #include "nvmlbridge.h"
 */
