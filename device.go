@@ -11,7 +11,6 @@ import "C"
 import (
 	"errors"
 	"fmt"
-	"log"
 	"unsafe"
 )
 
@@ -459,7 +458,7 @@ func getAllDevices() ([]C.nvmlDevice_t, error) {
 
 	device_count, err := nvmlDeviceGetCount()
 	if err != nil {
-		log.Fatal(err)
+		return devices, err
 	}
 
 	for i := 0; i < device_count; i++ {
