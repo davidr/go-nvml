@@ -1,7 +1,7 @@
 package nvml
 
 /*
-#cgo CPPFLAGS: -I/usr/local/cuda/include
+#cgo CPPFLAGS: -I/usr/local/cuda/include -I/usr/local/cuda-8.0/targets/x86_64-linux/include
 #cgo LDFLAGS: -L/usr/lib/nvidia-375 -L/usr/lib/nvidia -l nvidia-ml
 
 #include "nvmlbridge.h"
@@ -10,6 +10,7 @@ import "C"
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"unsafe"
 )
@@ -358,7 +359,7 @@ func (gpu *Device) UtilizationRates() (NVMLUtilization, error) {
 }
 
 type NVMLProcessInfo struct {
-	Pid uint
+	Pid           uint
 	UsedGpuMemory uint64
 }
 
@@ -378,6 +379,27 @@ func (gpu *Device) GraphicsRunningProcesses() ([]NVMLProcessInfo, error) {
 	}
 
 	return nil, nil
+}
+
+// EccErrors will return an error if there have been memory errors on the hardware
+func (gpu *Device) EccErrors() (err error) {
+	var result C.nvmlReturn_t
+	var cCount C.ulonglong = 0
+
+	result = C.nvmlDeviceGetTotalEccErrors(gpu.nvmldevice, C.NVML_MEMORY_ERROR_TYPE_UNCORRECTED, C.NVML_AGGREGATE_ECC, &cCount)
+	if result != C.NVML_SUCCESS {
+		switch result {
+		case C.NVML_ERROR_NOT_SUPPORTED:
+			return fmt.Errorf("nvmlDeviceGetMemoryErrorCounter is not supported on this hardware")
+		default:
+			return fmt.Errorf("nvmlDeviceGetMemoryErrorCounter returned error (%d)", result)
+		}
+	}
+	if cCount != 0 {
+		return fmt.Errorf("nvmlDeviceGetMemoryErrorCounter detected errors (%d)", cCount)
+	}
+
+	return nil
 }
 
 // Return a proper golang error of representation of the nvmlReturn_t error

@@ -1,14 +1,8 @@
 # NVML Bindings for Go [![API Documentation][godoc-svg]][godoc-url] [![MIT License][license-svg]][license-url]
 
-## NOTE: This project has been abandoned. It's no longer needed at my job, so I won't be maintaining it.
+## NOTE: This project was abandoned by the original author. The code was forked from https://github.com/davidr/go-nvml. I have begun adding minor functionality to it until such time as the official go bindings from Nvidia are better documented etc.
 
-This package provides bindings to Nvidia's NVML library.
-
-
-## Status
-
-It's mostly an experiment to learn cgo. I wouldn't actually use this for
-anything for a while.
+This package provides bindings to Nvidia's NVML library using the bridge functionality and CGO.
 
 ## Usage
 
@@ -17,9 +11,8 @@ anything for a while.
 ```go
 package main
 
-import nvml "github.com/davidr/go-nvml"
+import nvml "github.com/karlmutch/go-nvml"
 
-// To be completed later
 ```
 
 ## License
@@ -27,7 +20,7 @@ import nvml "github.com/davidr/go-nvml"
 All code in this repository is covered by the terms of the MIT License, the full
 text of which can be found in the LICENSE file.
 
-[godoc-url]: https://godoc.org/github.com/davidr/go-nvml
-[godoc-svg]: https://godoc.org/github.com/davidr/go-nvml?status.svg
-[license-url]: https://github.com/davidr/go-nvml/blob/master/LICENSE
+[godoc-url]: https://godoc.org/github.com/karlmutch/go-nvml
+[godoc-svg]: https://godoc.org/github.com/karlmutch/go-nvml?status.svg
+[license-url]: https://github.com/karlmutch/go-nvml/blob/master/LICENSE
 [license-svg]: https://img.shields.io/badge/license-MIT-blue.svg
