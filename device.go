@@ -1,8 +1,8 @@
 package nvml
 
 /*
-// #cgo CPPFLAGS: -I/path/to/install
-#cgo LDFLAGS: -L/usr/src/gdk/nvml/lib/ -l nvidia-ml
+#cgo CPPFLAGS: -I/usr/local/cuda/include -I/usr/local/cuda-8.0/targets/x86_64-linux/include
+#cgo LDFLAGS: -L/usr/lib/nvidia-375 -L/usr/lib/nvidia -l nvidia-ml
 
 #include "nvmlbridge.h"
 */
@@ -10,7 +10,7 @@ import "C"
 
 import (
 	"errors"
-	"log"
+	"fmt"
 	"unsafe"
 )
 
@@ -73,6 +73,41 @@ func (gpu *Device) Temp() (uint, error) {
 	}
 
 	return uint(ctemp), nil
+}
+
+const (
+	NVML_CLOCK_GRAPHICS = iota
+	NVML_CLOCK_SM
+	NVML_CLOCK_MEM
+	NVML_CLOCK_COUNT
+)
+
+// ClockInfo returns the {graphics, shader model, or memory} clock in Mhz.
+// Pass in the relevant constant NVML_CLOCK_{GRAPHICS,SM,MEM}.
+func (gpu *Device) ClockInfo(cclock_type C.nvmlClockType_t) (uint, error) {
+	var result C.nvmlReturn_t
+	var cclock C.uint
+
+	result = C.nvmlDeviceGetClockInfo(gpu.nvmldevice, cclock_type, &cclock)
+	if result != C.NVML_SUCCESS {
+		return 0, errors.New("GetClockInfo returned error")
+	}
+
+	return uint(cclock), nil
+}
+
+// MaxClockInfo returns the {graphics, shader model, or memory} clock in Mhz.
+// Pass in the relevant constant NVML_CLOCK_{GRAPHICS,SM,MEM}.
+func (gpu *Device) MaxClockInfo(cclock_type C.nvmlClockType_t) (uint, error) {
+	var result C.nvmlReturn_t
+	var cclock C.uint
+
+	result = C.nvmlDeviceGetMaxClockInfo(gpu.nvmldevice, cclock_type, &cclock)
+	if result != C.NVML_SUCCESS {
+		return 0, errors.New("GetMaxClockInfo returned error")
+	}
+
+	return uint(cclock), nil
 }
 
 type cIntPropFunc struct {
@@ -288,7 +323,7 @@ func (gpu *Device) MemoryInfo() (NVMLMemory, error) {
 
 	result = C.nvmlDeviceGetMemoryInfo(gpu.nvmldevice, &cmeminfo)
 	if result != C.NVML_SUCCESS {
-		return meminfo, errors.New("GetPowerState returned error")
+		return meminfo, errors.New("GetMemoryInfo returned error")
 	}
 
 	meminfo.Free = uint64(cmeminfo.free)
@@ -296,6 +331,74 @@ func (gpu *Device) MemoryInfo() (NVMLMemory, error) {
 	meminfo.Used = uint64(cmeminfo.used)
 
 	return meminfo, nil
+}
+
+// Go correspondent of the C.nvmlUtilization_t struct. gpu/memory in percent
+type NVMLUtilization struct {
+	Gpu    uint
+	Memory uint
+}
+
+// UtilizationRates returns a NVMLUtilization struct with gpu/memory
+// utilization in percent
+func (gpu *Device) UtilizationRates() (NVMLUtilization, error) {
+	var result C.nvmlReturn_t
+	var cutil C.nvmlUtilization_t
+	var util NVMLUtilization
+
+	result = C.nvmlDeviceGetUtilizationRates(gpu.nvmldevice, &cutil)
+	if result != C.NVML_SUCCESS {
+		return util, errors.New("GetUtilizationRates returned error")
+	}
+
+	util.Gpu = uint(cutil.gpu)
+	util.Memory = uint(cutil.memory)
+
+	return util, nil
+}
+
+type NVMLProcessInfo struct {
+	Pid           uint
+	UsedGpuMemory uint64
+}
+
+// GraphicsRunningProcesses only tells you if there is a process using the GPU
+// in that case it will return (nil, nil), otherwise you'll get an error
+func (gpu *Device) GraphicsRunningProcesses() ([]NVMLProcessInfo, error) {
+	var result C.nvmlReturn_t
+	var cinfoCount C.uint = 0
+
+	result = C.nvmlDeviceGetGraphicsRunningProcesses(gpu.nvmldevice, &cinfoCount, nil)
+	if result != C.NVML_SUCCESS {
+		if result == C.NVML_ERROR_INSUFFICIENT_SIZE {
+			return nil, errors.New("GetGraphicsRunningProcesses insufficient size")
+		} else {
+			return nil, errors.New("GetGraphicsRunningProcesses returned error")
+		}
+	}
+
+	return nil, nil
+}
+
+// EccErrors will return an error if there have been memory errors on the hardware
+func (gpu *Device) EccErrors() (err error) {
+	var result C.nvmlReturn_t
+	var cCount C.ulonglong = 0
+
+	result = C.nvmlDeviceGetTotalEccErrors(gpu.nvmldevice, C.NVML_MEMORY_ERROR_TYPE_UNCORRECTED, C.NVML_AGGREGATE_ECC, &cCount)
+	if result != C.NVML_SUCCESS {
+		switch result {
+		case C.NVML_ERROR_NOT_SUPPORTED:
+			return fmt.Errorf("nvmlDeviceGetMemoryErrorCounter is not supported on this hardware")
+		default:
+			return fmt.Errorf("nvmlDeviceGetMemoryErrorCounter returned error (%d)", result)
+		}
+	}
+	if cCount != 0 {
+		return fmt.Errorf("nvmlDeviceGetMemoryErrorCounter detected errors (%d)", cCount)
+	}
+
+	return nil
 }
 
 // Return a proper golang error of representation of the nvmlReturn_t error
@@ -355,7 +458,7 @@ func getAllDevices() ([]C.nvmlDevice_t, error) {
 
 	device_count, err := nvmlDeviceGetCount()
 	if err != nil {
-		log.Fatal(err)
+		return devices, err
 	}
 
 	for i := 0; i < device_count; i++ {
